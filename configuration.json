@@ -1,0 +1,18 @@
+[
+    {
+        "rex": "^(?=.{5,}).*$",
+        "error": "Password length must be minimum 5 characters"
+    },
+    {
+        "rex": "\\d",
+        "error": "Password should have atleast one digit"
+    },
+    {
+        "rex": "^(?!.*(.)\\1{2}).*$",
+        "error": "Password should not have more than two repeating characters"
+    },
+    {
+        "rex": "^((?=.*[A-Z])|(?=.*[~@#$%^&*+=`|'{}<>:;!.,?\"_\\\/\\[\\]()-]+)).*$",
+        "error": "Password should have at least one upper-case character or alternatively one special character"
+    }
+]
