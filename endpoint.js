@@ -1,44 +1,50 @@
-var express = require('express');
-const filesync = require('fs')
-var parser = require('body-parser')
-var exp = express();
-exp.use(parser.json());
-exp.use(parser.urlencoded({ extended: true }));
+var express = require("express");
+var app = express();
+const filesync = require("fs");
+var parser = require("body-parser");
+app.use(parser.json());
+app.use(parser.urlencoded({ extended: true }));
+
+// password check rules are defined at configuration.json
+// get all password check rules
+var rulesValidPassword = JSON.parse(
+  filesync.readFileSync("configuration.json", "utf8")
+);
 
 /**
  * Server
  */
-var server = exp.listen("3000", "localhost", function () {
-    let host = server.address().address
-    let port = server.address().port
-    console.log("Server is running at http://%s:%s", host, port);
+var server = app.listen("3000", "localhost", function () {
+  let host = server.address().address;
+  let port = server.address().port;
+  console.log("Server is running at http://%s:%s", host, port);
 });
 
 /**
  * Password Check API
  */
- exp.post('/', function (req, res) {
-    let errorMsgs = [];
-    let password = req.body.password;
+app.post("/", function (req, res) {
+  let errorMsgs = [];
+  let password = req.body.password;
 
-    // password check rules are defined at configuration.json
-    var data = filesync.readFileSync('configuration.json', 'utf8');
-    let regExs = JSON.parse(data);
-    if(regExs.length > 0) {
-        for (let r of regExs) {
-            let regex = new RegExp(r.rex, 'g');
-            if (!password.match(regex)) {
-                errorMsgs.push(r.error);
-            }
-        }
+  // validate passwords
+  if (rulesValidPassword.length > 0) {
+    for (let rule of rulesValidPassword) {
+      let regex = new RegExp(rule.rex, "g");
+      if (!password.match(regex)) {
+        errorMsgs.push(rule.error);
+      }
     }
-    
-    if (errorMsgs.length > 0) { // error case
-        res.status(400);
-        res.json({ errors: errorMsgs });
-    } else { // success case
-        res.status(204);
-        res.json({});
-    }
+  }
+
+  // error case
+  if (errorMsgs.length > 0) {
+    res.status(400);
+    res.json({ statusMessage: errorMsgs });
+  }
+  // success case
+  else {
+    res.status(204);
+    res.json({ statusMessage: "success" });
+  }
 });
-
