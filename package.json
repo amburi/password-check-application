@@ -1,8 +1,8 @@
 {
-  "name": "erasys_task",
+  "name": "password-check-application",
   "version": "1.0.0",
-  "description": "Erasys Task: Password Check Application",
-  "main": "run.js",
+  "description": "An application to check compromised password",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
