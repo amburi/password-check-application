@@ -1,8 +1,9 @@
 # Password Check Application
 
+The Password Check Application is designed to enhance security by ensuring users set strong passwords. This is achieved by validating passwords against a set of configurable rules and checking if they have been compromised. The project includes a REST API for real-time password validation and a script for batch-validating existing passwords stored in a database.
+
 ## Table of Contents
 
-- [Introduction](#introduction)
 - [Business Requirements](#business-requirements)
 - [Functional Requirements](#functional-requirements)
 - [Prerequisites](#prerequisites)
@@ -14,11 +15,7 @@
   - [Executing the Validation Script](#executing-the-validation-script)
 - [Sample Output](#sample-output)
 - [Notes](#notes)
-- [Conclusion](#conclusion)
 
-## Introduction
-
-The Password Check Application is designed to enhance security by ensuring users set strong passwords. This is achieved by validating passwords against a set of configurable rules and checking if they have been compromised. The project includes a REST API for real-time password validation and a script for batch-validating existing passwords stored in a database.
 
 ## Business Requirements
 
