@@ -1,50 +1,46 @@
-var express = require("express");
-var app = express();
-const filesync = require("fs");
-var parser = require("body-parser");
-app.use(parser.json());
-app.use(parser.urlencoded({ extended: true }));
+const express = require("express");
+const fs = require("fs");
+const bodyParser = require("body-parser");
 
-// password check rules are defined at configuration.json
-// get all password check rules
-var rulesValidPassword = JSON.parse(
-  filesync.readFileSync("configuration.json", "utf8")
-);
+const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-/**
- * Server
- */
-var server = app.listen("3000", "localhost", function () {
-  let host = server.address().address;
-  let port = server.address().port;
-  console.log("Server is running at http://%s:%s", host, port);
+// Password check rules are defined in configuration.json
+const rulesValidPassword = JSON.parse(fs.readFileSync("configuration.json", "utf8"));
+
+// Start server
+const server = app.listen(3000, "localhost", () => {
+  const { address, port } = server.address();
+  console.log(`Server is running at http://${address}:${port}`);
+});
+
+// Password Check API
+app.post("/", (req, res) => {
+  const password = req.body.password;
+  const errorMsgs = validatePassword(password);
+
+  if (errorMsgs.length > 0) {
+    return res.status(400).json({ statusMessage: errorMsgs });
+  }
+
+  res.status(204).json({ statusMessage: "success" });
 });
 
 /**
- * Password Check API
+ * Validate password against rules defined in configuration.json
+ * @param {string} password - The password to validate
+ * @returns {string[]} - List of error messages if any rules are violated
  */
-app.post("/", function (req, res) {
-  let errorMsgs = [];
-  let password = req.body.password;
+function validatePassword(password) {
+  const errorMsgs = [];
 
-  // validate passwords
-  if (rulesValidPassword.length > 0) {
-    for (let rule of rulesValidPassword) {
-      let regex = new RegExp(rule.rex, "g");
-      if (!password.match(regex)) {
-        errorMsgs.push(rule.error);
-      }
+  for (const rule of rulesValidPassword) {
+    const regex = new RegExp(rule.rex, "g");
+    if (!password.match(regex)) {
+      errorMsgs.push(rule.error);
     }
   }
 
-  // error case
-  if (errorMsgs.length > 0) {
-    res.status(400);
-    res.json({ statusMessage: errorMsgs });
-  }
-  // success case
-  else {
-    res.status(204);
-    res.json({ statusMessage: "success" });
-  }
-});
+  return errorMsgs;
+}
