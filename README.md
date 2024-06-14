@@ -1,83 +1,153 @@
-I thoroughly enjoyed working on this trial task. I am glad to inform you that I have completed the task and the bonus task also. Please have a look and let me know if any demonstration or showcase is needed.
-
 # Password Check Application
-Erasys Backend Trial Task: Password Check Application
-To know more about the task <a href="https://github.com/erasys/backend-trial-task">click here</a>
 
+## Table of Contents
 
-# Solution
+- [Introduction](#introduction)
+- [Business Requirements](#business-requirements)
+- [Functional Requirements](#functional-requirements)
+- [Prerequisites](#prerequisites)
+- [Setup Instructions](#setup-instructions)
+  - [Database Connection](#database-connection)
+  - [Configuration Rules](#configuration-rules)
+- [Running the Application](#running-the-application)
+  - [Starting the API Server](#starting-the-api-server)
+  - [Executing the Validation Script](#executing-the-validation-script)
+- [Sample Output](#sample-output)
+- [Notes](#notes)
+- [Conclusion](#conclusion)
 
-## Prerequisite
-1. Node JS should be installed in the system
-2. <a href="https://hub.docker.com/r/erasys/compromised-pw-api">Docker Image</a> should be running in http://localhost:5000 
-![](output/Docker-Image.PNG)
-3. Set database connection in `run.js`
-4. Set rules in `configuration.json` file.
+## Introduction
 
-## Set Database Connection
-Update database connection details in `run.js`. 
+The Password Check Application is designed to enhance security by ensuring users set strong passwords. This is achieved by validating passwords against a set of configurable rules and checking if they have been compromised. The project includes a REST API for real-time password validation and a script for batch-validating existing passwords stored in a database.
 
-```
+## Business Requirements
+
+To prevent unauthorized access due to weak passwords, the system must:
+1. Validate passwords against predefined rules.
+2. Check if passwords have been previously compromised.
+3. Update password validity status in the database.
+
+## Functional Requirements
+
+1. **Password Validation API**
+   - Endpoint to validate passwords against a set of rules.
+   - Responds with `204 No Content` if the password is valid.
+   - Responds with `400 Bad Request` and error messages if the password is invalid.
+   - Validation rules are defined in a separate configuration file.
+
+2. **Batch Validation Script**
+   - Reads passwords from a MySQL database.
+   - Uses the Password Validation API to validate each password.
+   - Checks each password against a compromised password API.
+   - Updates the `valid` field in the database based on the validation results.
+
+## Prerequisites
+
+1. Node.js installed on the system.
+2. Docker running the compromised passwords API image (`amburi/compromised-passwords`) at `http://localhost:8080`. Refer: [docker-image](https://hub.docker.com/repository/docker/amburi/compromised-passwords)
+3. MySQL database with connection details configured in the script.
+
+## Setup Instructions
+
+### Database Connection
+
+Update the database connection details in `index.js`:
+
+```javascript
 var dbCon = mysql.createConnection({
   host: "localhost", // host
   user: "root", // username
   password: "", // password
-  database: "testdb", // database name
+  database: "passwordDb", // database name
 });
 ```
-Note: To find database dump <a href="https://github.com/erasys/backend-trial-task/blob/master/sqldump.sql">click here</a>. 
 
-## Set rules in configuration.json file
-The password validation ruleset are as follows:
+### Configuration Rules
 
-- Password length is minimum 5 characters
-- At least one digit is used in the password
-- There are no more than two repeating characters (like 'bbb' – 2 are allowed, but not 3 or more)
-- There is at least one upper-case character OR alternatively one special character
+Define password validation rules in `configuration.json`:
 
-Allowed special characters are,
+```json
+[
+    {
+        "rex": "^(?=.{5,}).*$",
+        "error": "Password length must be minimum 5 characters"
+    },
+    {
+        "rex": "\\d",
+        "error": "Password should have atleast one digit"
+    },
+    {
+        "rex": "^(?!.*(.)\\1{2}).*$",
+        "error": "Password should not have more than two repeating characters"
+    },
+    {
+        "rex": "^((?=.*[A-Z])|(?=.*[~@#$%^&*+=`|'{}<>:;!.,?\"_\\\/\\[\\]()-]+)).*$",
+        "error": "Password should have at least one upper-case character or alternatively one special character"
+    }
+]
 ```
-~ @ # $ % ^ & * + = ` | ' { } < > : ; ! . , ? \ " _ / [ ] ( ) - 
+
+## Running the Application
+
+### Starting the API Server
+
+1. Navigate to the project folder.
+2. Install required dependencies:
+
+```bash
+npm install
 ```
 
-## Project Set Up
-1. Download or clone the project repository (https://github.com/amburi/Password-Check-Application)
-2. Then go to project folder and run `npm install` from terminal. Required dependencies will be installed.
+3. Start the API server:
 
-## Project Execute/Run
-1. Now run `node endpoint.js` in termial. It will run the server endpoint api in http://localhost:3000. Keep this running.
-
+```bash
+node endpoint.js
 ```
-> node endpoint.js
-Server is running at http://127.0.0.1:3000
-```
-2. Open new terminal and run `node run.js`. It should run the script to validate passwords in database based on password check rules mentioned in `configuration.json` and also check if password is compromised or not.
 
-Sample Output:
+The server will run at [http://localhost:3000](http://localhost:3000).
+
+### Executing the Validation Script
+
+1. Open a new terminal.
+2. Run the validation script:
+
+```bash
+node index.js
+```
+
+This script will validate passwords based on the rules specified in [configuration.json](./configuration.json) and check for compromised passwords.
+
+## Sample Output
+
+Example output from the validation script:
 
 ```
 ------- 
 Password: AKp$
 Error Message(s):
-Password length must be minimum 5 characters
-Password should have atleast one digit
-Password is compromised
+Password length must be minimum 5 characters and include at least one digit.
+Password is compromised.
 -------
 Password: amhhy
 Error Message(s):
-Password should have atleast one digit
-Password should have at least one upper-case character or alternatively one special character
-Password is not compromised
+Password should have at least one digit.
+Password should have at least one upper-case character or one special character.
+Password is not compromised.
 ------- 
 Password: a1g!7
-Password is valid
-Password is not compromised
+Password is valid.
+Password is not compromised.
 ```
-<a href="output/log.txt">Click here</a> to check entire output.
 
-The sript is setting the `valid` field in database `passwords` table to 1 or 0 for valid and invalid passwords respectively. 
+The script updates the `valid` field in the `passwords` table to `1` for valid passwords and `0` for invalid passwords.
 
-![](output/Database-Output.PNG)
+<img src="output/Database-Output.PNG" width="300">
 
+## Notes
 
-Thank You!
+- Ensure the Docker container for the compromised passwords API is running at [http://localhost:8080](http://localhost:8080).
+- Modify the database connection details as necessary.
+
+## Conclusion
+
+This Password Check Application ensures enhanced security by validating passwords against configurable rules and checking for compromised passwords. By integrating this application, we can significantly reduce the risk of unauthorized access due to weak passwords.
